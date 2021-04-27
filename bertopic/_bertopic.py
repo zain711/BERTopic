@@ -377,7 +377,8 @@ class BERTopic:
                          nr_bins: int = None,
                          datetime_format: str = None,
                          evolution_tuning: bool = True,
-                         global_tuning: bool = True) -> pd.DataFrame:
+                         global_tuning: bool = True,
+                         translate: str = None) -> pd.DataFrame:
         """ Create topics over time
 
         To create the topics over time, BERTopic needs to be already fitted once.
@@ -503,9 +504,18 @@ class BERTopic:
             if evolution_tuning:
                 previous_topics = sorted(list(documents_per_topic.Topic.values))
                 previous_c_tf_idf = c_tf_idf.copy()
+        final_df = pd.DataFrame(topics_over_time, columns=["Topic", "Words", "Frequency", "Timestamp"])
+        if (translate):
+            final_df['Words'] = final_df['Words'].apply(self.translate_docs, lang = translate)
+        return final_df
 
-        return pd.DataFrame(topics_over_time, columns=["Topic", "Words", "Frequency", "Timestamp"])
-
+    def translate_docs(self,
+                       words,
+                       lang):
+        translate_client = translate.Client()
+        result = translate_client.translate(words, target_language='en', source_language=lang)
+        return result.get('translatedText')
+        
     def topics_per_class(self,
                          docs: List[str],
                          topics: List[int],
