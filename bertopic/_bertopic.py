@@ -862,13 +862,13 @@ class BERTopic:
                            "Topic": topic_list[1:], "Words": words[1:], "Size": frequencies[1:]})
         return self._plotly_topic_visualization(df, topic_list)
 
-   def translate_names(self,
-                       words,
-                       lang):
-       translate_client = translate.Client()
-       trans_names = words.replace('_', ' ')
-       result = translate_client.translate(trans_names, target_language='en', source_language=lang)
-       return result.get('translatedText')
+    def translate_names(self,
+                        words,
+                        lang):
+        translate_client = translate.Client()
+        trans_names = words.replace('_', ' ')
+        result = translate_client.translate(trans_names, target_language='en', source_language=lang)
+        return result.get('translatedText')
 
 
     def visualize_topics_over_time(self,
