@@ -28,6 +28,12 @@ from bertopic.backend._utils import select_backend
 import plotly.express as px
 import plotly.graph_objects as go
 
+# Translation
+import six
+from google.cloud import translate_v2 as translate
+import os
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/content/drive/My Drive/rugged-alloy-311800.json"
+
 logger = MyLogger("WARNING")
 
 
@@ -856,10 +862,20 @@ class BERTopic:
                            "Topic": topic_list[1:], "Words": words[1:], "Size": frequencies[1:]})
         return self._plotly_topic_visualization(df, topic_list)
 
+   def translate_names(self,
+                       words,
+                       lang):
+       translate_client = translate.Client()
+       trans_names = words.replace('_', ' ')
+       result = translate_client.translate(trans_names, target_language='en', source_language=lang)
+       return result.get('translatedText')
+
+
     def visualize_topics_over_time(self,
                                    topics_over_time: pd.DataFrame,
                                    top_n: int = None,
-                                   topics: List[int] = None) -> go.Figure:
+                                   topics: List[int] = None,
+                                   translate: str = None) -> go.Figure:
         """ Visualize topics over time
 
         Arguments:
@@ -902,7 +918,9 @@ class BERTopic:
         topic_names = {key: value[:40] + "..." if len(value) > 40 else value for key, value in self.topic_names.items()}
         topics_over_time["Name"] = topics_over_time.Topic.map(topic_names)
         data = topics_over_time.loc[topics_over_time.Topic.isin(selected_topics), :]
-
+        if translate:
+            topics_over_time['Name'] = topics_over_time['Name'].apply(self.translate_names, lang = translate)
+            data = topics_over_time.loc[topics_over_time.Topic.isin(selected_topics), :]
         # Add traces
         fig = go.Figure()
         for index, topic in enumerate(data.Topic.unique()):
